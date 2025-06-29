@@ -19,6 +19,7 @@ class TelegramHandlersTest(TestCase):
         )
         self.update = AsyncMock()
         self.context = MagicMock()
+
         self.update.effective_user = MagicMock()
         self.update.effective_user.username = 'testuser'
         self.update.effective_user.first_name = 'Test'
@@ -28,11 +29,13 @@ class TelegramHandlersTest(TestCase):
         self.update.message = AsyncMock()
 
     async def run_async(self, coro):
+        """Запуск асинхронного кода в синхронных тестах"""
         return await coro
 
     @patch('telegram_bot.handlers.authenticate_user')
     @patch('telegram_bot.handlers.create_telegram_user')
-    def test_get_chat_id_success(self, mock_authenticate):
+    def test_get_chat_id_success(self, mock_create_telegram_user, mock_authenticate):
+        """Тест успешной привязки аккаунта"""
         mock_authenticate.return_value = self.user
         self.update.message.text = 'test@example.com testpass123'
 
@@ -41,11 +44,14 @@ class TelegramHandlersTest(TestCase):
         ))
 
         self.assertEqual(result, ConversationHandler.END)
+        mock_authenticate.assert_called_once_with('test@example.com', 'testpass123')
+        mock_create_telegram_user.assert_called_once()
         self.update.message.reply_text.assert_awaited_once_with("✅ Аккаунт успешно привязан!")
 
     @patch('telegram_bot.handlers.authenticate_user')
-    def test_get_chat_id_failure(self, mock_auth):
-        mock_auth.return_value = None
+    def test_get_chat_id_failure(self, mock_authenticate):
+        """Тест неудачной привязки аккаунта"""
+        mock_authenticate.return_value = None
         self.update.message.text = 'wrong@example.com wrongpass'
 
         result = asyncio.run(self.run_async(
@@ -56,16 +62,20 @@ class TelegramHandlersTest(TestCase):
         self.update.message.reply_text.assert_awaited_once_with("❌ Неверные учетные данные")
 
     def test_cancel_handler(self):
+        """Тест обработчика отмены"""
         result = asyncio.run(self.run_async(
             cancel(self.update, self.context)
         ))
+
         self.assertEqual(result, ConversationHandler.END)
         self.update.message.reply_text.assert_awaited_once_with("Действие отменено.")
 
     def test_start_handler(self):
+        """Тест стартового обработчика"""
         asyncio.run(self.run_async(
             start(self.update, self.context)
         ))
+
         self.update.message.reply_text.assert_awaited_once()
 
 
