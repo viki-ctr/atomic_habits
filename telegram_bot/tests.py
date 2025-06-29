@@ -1,13 +1,15 @@
 import asyncio
+import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from telegram.ext import ConversationHandler
 
 from habits.models import Habit
 from telegram_bot.handlers import cancel, get_chat_id, start, GET_CHAT_ID
 from telegram_bot.models import TelegramUser
 from telegram_bot.tasks import send_telegram_message, send_telegram_reminders
+from telegram_bot.views import telegram_webhook
 from users.models import User
 
 
@@ -115,3 +117,34 @@ class TelegramTasksTest(TestCase):
 
         send_telegram_message('12345', 'Test message')
         mock_post.assert_called_once()
+
+
+class TelegramWebhookTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.valid_data = {
+            "update_id": 123,
+            "message": {
+                "message_id": 1,
+                "date": 1630000000,
+                "text": "Test",
+                "chat": {"id": 1}
+            }
+        }
+        self.invalid_data = "{bad: json}"
+
+    def test_webhook_post_invalid_json(self):
+        """Тест обработки невалидного JSON."""
+        request = self.factory.post(
+            '/webhook/',
+            data=self.invalid_data,
+            content_type='application/json'
+        )
+        response = telegram_webhook(request)
+        self.assertEqual(response.status_code, 500)
+
+    def test_webhook_wrong_method(self):
+        """Тест на неподдерживаемый метод (GET)."""
+        request = self.factory.get('/webhook/')
+        response = telegram_webhook(request)
+        self.assertEqual(response.status_code, 405)

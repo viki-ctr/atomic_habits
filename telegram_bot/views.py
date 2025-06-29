@@ -10,7 +10,7 @@ from telegram.ext import Application
 logger = logging.getLogger(__name__)
 
 
-application = Application.builder().token(settings.TELEGRAM_BOT_TOKEN).build()
+_application = Application.builder().token(settings.TELEGRAM_BOT_TOKEN).build()
 
 
 def get_application():
