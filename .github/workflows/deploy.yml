@@ -1,0 +1,29 @@
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-ansi
+          celery:
+            command: poetry run celery -A config worker -l info
+
+      - name: Run tests
+        run: poetry run python manage.py test
+
+  deploy:
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - run: ssh ubuntu@158.160.186.108 "cd /app && docker-compose up -d --build"
