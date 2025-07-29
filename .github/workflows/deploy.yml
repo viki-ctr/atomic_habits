@@ -1,29 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ develop ]
+
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: '3.10'
+      - run: pip install flake8 black isort
+      - run: flake8 . --count --show-source --statistics
+      - run: black --check .
 
-      - name: Install Poetry
-        run: pip install poetry
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+      redis:
+        image: redis:7
+        ports:
+          - "6379:6379"
 
-      - name: Install dependencies
-        run: |
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi
-          celery:
-            command: poetry run celery -A config worker -l info
-
-      - name: Run tests
-        run: poetry run python manage.py test
-
-  deploy:
-    needs: test
     steps:
       - uses: actions/checkout@v3
-      - run: ssh ubuntu@158.160.186.108 "cd /app && docker-compose up -d --build"
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - run: pip install poetry
+      - run: poetry config virtualenvs.create false
+      - run: poetry install --no-interaction --no-ansi
+      - run: poetry run python manage.py test
+
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: docker-compose config
+      - run: docker-compose build
+
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: appleboy/ssh-action@master
+        with:
+          host: 158.160.186.108
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /app
+            git pull origin develop
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d --build
