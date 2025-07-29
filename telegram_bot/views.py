@@ -7,6 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from telegram import Update
 from telegram.ext import Application
 
+from config.wsgi import application
+
 logger = logging.getLogger(__name__)
 
 
