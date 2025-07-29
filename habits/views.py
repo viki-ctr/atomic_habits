@@ -13,6 +13,7 @@ class HabitViewSet(viewsets.ModelViewSet):
     ViewSet для работы с привычками пользователя.
     Позволяет создавать, просматривать, обновлять и удалять привычки.
     """
+
     serializer_class = HabitSerializer
     pagination_class = HabitPagination
     permission_classes = [IsAuthenticated, IsOwner]
@@ -31,9 +32,9 @@ class HabitViewSet(viewsets.ModelViewSet):
         responses={
             status.HTTP_201_CREATED: HabitSerializer,
             status.HTTP_400_BAD_REQUEST: "Неверные данные",
-            status.HTTP_401_UNAUTHORIZED: "Не авторизован"
+            status.HTTP_401_UNAUTHORIZED: "Не авторизован",
         },
-        security=[{'Bearer': []}]
+        security=[{"Bearer": []}],
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -44,6 +45,7 @@ class PublicHabitViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet только для чтения публичных привычек.
     Доступен всем пользователям без возможности редактирования.
     """
+
     serializer_class = PublicHabitSerializer
     pagination_class = HabitPagination
     permission_classes = [IsPublicReadOnly]

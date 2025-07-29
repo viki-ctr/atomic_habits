@@ -5,16 +5,13 @@ from users.models import User
 
 
 class Habit(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="habits")
     place = models.CharField(max_length=255)
     time = models.TimeField()
     action = models.CharField(max_length=255)
     is_pleasant = models.BooleanField(default=False)
-    related_habit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
-    frequency = models.PositiveSmallIntegerField(
-        default=1,
-        validators=[MinValueValidator(1), MaxValueValidator(7)]
-    )
+    related_habit = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
+    frequency = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(7)])
     reward = models.CharField(max_length=255, blank=True)
     duration = models.PositiveIntegerField(validators=[MaxValueValidator(120)])
     is_public = models.BooleanField(default=False)
@@ -22,6 +19,7 @@ class Habit(models.Model):
 
     def clean(self):
         from django.core.exceptions import ValidationError
+
         if self.related_habit and self.reward:
             raise ValidationError("Нельзя одновременно указывать связанную привычку и вознаграждение.")
         if self.related_habit and not self.related_habit.is_pleasant:
@@ -33,6 +31,6 @@ class Habit(models.Model):
         return f"{self.action} в {self.time} ({self.user})"
 
     class Meta:
-        verbose_name = 'Привычка'
-        verbose_name_plural = 'Привычки'
-        ordering = ['-created_at']
+        verbose_name = "Привычка"
+        verbose_name_plural = "Привычки"
+        ordering = ["-created_at"]
