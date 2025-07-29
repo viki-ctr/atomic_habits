@@ -27,6 +27,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
         ports:
           - "5432:5432"
       redis:
@@ -34,16 +35,24 @@ jobs:
         ports:
           - "6379:6379"
 
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-      - run: pip install poetry
-      - run: poetry config virtualenvs.create false
-      - run: poetry install --no-interaction --no-ansi
-      - run: poetry run python manage.py test
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry config virtualenvs.create false
+        poetry install --no-interaction --no-ansi
+
+    - name: Run tests
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+      run: |
+        poetry run python manage.py test
   docker-build:
     needs: test
     runs-on: ubuntu-latest
