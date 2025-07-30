@@ -22,10 +22,7 @@ def send_telegram_reminders():
             telegram_user = TelegramUser.objects.filter(user=habit.user).first()
             if telegram_user:
                 message = format_reminder_message(habit)
-                send_telegram_message.delay(
-                    chat_id=telegram_user.chat_id,
-                    message=message
-                )
+                send_telegram_message.delay(chat_id=telegram_user.chat_id, message=message)
         except Exception as e:
             logger.error(f"Ошибка отправки напоминания для пользователя {habit.user}: {e}")
 
@@ -35,11 +32,7 @@ def send_telegram_message(chat_id: int, message: str):
     """Отправка сообщения в Telegram"""
     try:
         url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {
-            'chat_id': chat_id,
-            'text': message,
-            'parse_mode': 'Markdown'
-        }
+        payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
         response = requests.post(url, json=payload)
         response.raise_for_status()
     except Exception as e:

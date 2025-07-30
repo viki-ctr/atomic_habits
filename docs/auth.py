@@ -5,10 +5,10 @@ token_obtain_schema = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'username': openapi.Schema(type=openapi.TYPE_STRING),
-            'password': openapi.Schema(type=openapi.TYPE_STRING),
+            "username": openapi.Schema(type=openapi.TYPE_STRING),
+            "password": openapi.Schema(type=openapi.TYPE_STRING),
         },
-        required=['username', 'password']
+        required=["username", "password"],
     ),
     "responses": {
         200: openapi.Response(
@@ -16,11 +16,11 @@ token_obtain_schema = {
             schema=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    'refresh': openapi.Schema(type=openapi.TYPE_STRING),
-                    'access': openapi.Schema(type=openapi.TYPE_STRING),
-                }
-            )
+                    "refresh": openapi.Schema(type=openapi.TYPE_STRING),
+                    "access": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
         ),
-        400: "Неверные учетные данные"
-    }
+        400: "Неверные учетные данные",
+    },
 }

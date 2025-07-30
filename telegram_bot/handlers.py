@@ -22,11 +22,11 @@ def create_telegram_user(user, chat_id, username, first_name, last_name):
     TelegramUser.objects.update_or_create(
         user=user,
         defaults={
-            'chat_id': chat_id,
-            'username': username,
-            'first_name': first_name,
-            'last_name': last_name,
-        }
+            "chat_id": chat_id,
+            "username": username,
+            "first_name": first_name,
+            "last_name": last_name,
+        },
     )
 
 
@@ -41,8 +41,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def connect_account(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(
-        "Пожалуйста, введите ваш email и пароль через пробел:\n"
-        "Пример: user@example.com mypassword"
+        "Пожалуйста, введите ваш email и пароль через пробел:\n" "Пример: user@example.com mypassword"
     )
     return GET_CHAT_ID
 
@@ -58,7 +57,7 @@ async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 chat_id=update.effective_chat.id,
                 username=update.effective_user.username,
                 first_name=update.effective_user.first_name,
-                last_name=update.effective_user.last_name
+                last_name=update.effective_user.last_name,
             )
             await update.message.reply_text("✅ Аккаунт успешно привязан!")
             return ConversationHandler.END
@@ -78,12 +77,10 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 def setup_handlers(application):
     """Настройка обработчиков команд"""
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('connect', connect_account)],
-        states={
-            GET_CHAT_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_chat_id)]
-        },
-        fallbacks=[CommandHandler('cancel', cancel)],
+        entry_points=[CommandHandler("connect", connect_account)],
+        states={GET_CHAT_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_chat_id)]},
+        fallbacks=[CommandHandler("cancel", cancel)],
     )
 
-    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(conv_handler)
